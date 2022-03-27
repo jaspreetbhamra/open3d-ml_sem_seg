@@ -1,0 +1,5 @@
+Building the model in PyTorch, version information to be added later
+Using cuda and automatic mixed precision
+Open3D pytorch doesn't work with Windows, hence using wsl (Ubuntu)
+Installed pytorch using the cuda requirements in the git repo
+The sparseconv layer is present in open3d.ml.torch.layers and not in open3d.ml.torch.nn as is given in the documentation link provided in the mail
