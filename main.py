@@ -29,10 +29,10 @@ class Experiment(object):
 
         self.__name = self.__config_data['experiment_name']
         # Used to store models and experiment specific outputs
-        self.__experiment_dir = self.__name
+        self.__experiment_dir = os.path.join('experiment_data', self.__name)
         
         # Read dataset
-        self.__train_loader, self.__val_loader = Voxels(self.__config_data)
+        self.__train_loader, self.__val_loader = get_datasets(self.__config_data)
 
         # Setup Experiment
         self.__epochs = self.__config_data['experiment']['num_epochs']
@@ -54,7 +54,8 @@ class Experiment(object):
             classes=np.unique(labels_reshaped), y=labels_reshaped.flatten())).to(DEVICE)
 
         # Cross Entropy applies softmax internally
-        self.__criterion = nn.CrossEntropyLoss(weight=class_weights)
+        # self.__criterion = nn.CrossEntropyLoss(weight=class_weights)
+        self.__criterion = nn.CrossEntropyLoss()
 
         # Optimizer
         self.__optimizer = torch.optim.Adam(self.__model.parameters(), lr=self.__config_data['experiment']['learning_rate'])
@@ -93,7 +94,7 @@ class Experiment(object):
 
 
     def get_model(self, config_data):
-        return Base_Model()
+        return BaselineModel(3, 13)
 
 
 
@@ -103,8 +104,8 @@ class Experiment(object):
             start_time = datetime.now()
             self.__current_epoch = epoch
             train_loss = self.__train()
-            val_loss, mean_iou_score = self.__val()
-            self.__record_stats(train_loss, val_loss, mean_iou_score)
+            val_loss, self.__mean_iou_score = self.__val()
+            self.__record_stats(train_loss, val_loss)
             self.__log_epoch_stats(start_time)
             self.__save_model()
 
@@ -119,8 +120,8 @@ class Experiment(object):
 
             scaler = torch.cuda.amp.grad_scaler.GradScaler()
 
-            coords = coords.to(device=DEVICE)
-            pixel_vals = pixel_vals.to(device=DEVICE)
+            coords = coords.type(torch.FloatTensor).to(device=DEVICE)
+            pixel_vals = pixel_vals.type(torch.FloatTensor).to(device=DEVICE)
             labels = labels.type(torch.LongTensor).to(device=DEVICE)
 
             self.__optimizer.zero_grad()
@@ -130,13 +131,12 @@ class Experiment(object):
                 loss = self.__criterion(outputs, labels)
                 
                 batch_loss = loss.sum().item() / labels.shape[0]
-                print (f"Batch Label Shape: {labels.shape[0]}")
+                # print (f"Batch Label Shape: {labels.shape[0]}")
                 training_loss += loss.sum().item()
 
             scaler.scale(loss).backward(retain_graph=False)
             scaler.step(self.__optimizer)
             scaler.update()
-
 
             if i % 100 == 0:
                 print("Batch {} Loss: {}".format(i, batch_loss))
@@ -160,8 +160,8 @@ class Experiment(object):
 
             for i, (coords, pixel_vals, labels) in enumerate(self.__val_loader):
                 
-                coords = coords.to(device=DEVICE)
-                pixel_vals = pixel_vals.to(device=DEVICE)
+                coords = coords.type(torch.FloatTensor).to(device=DEVICE)
+                pixel_vals = pixel_vals.type(torch.FloatTensor).to(device=DEVICE)
                 labels = labels.type(torch.LongTensor).to(device=DEVICE)
 
                 outputs = self.__model(coords, pixel_vals)
@@ -233,9 +233,9 @@ class Experiment(object):
         time_to_completion = time_elapsed * (self.__epochs - self.__current_epoch - 1)
         train_loss = self.__training_losses[self.__current_epoch]
         val_loss = self.__val_losses[self.__current_epoch]
-        summary_str = "Epoch: {}, Train Loss: {}, Val Loss: {}, Took {}, ETA: {}\n"
-        summary_str = summary_str.format(self.__current_epoch + 1, train_loss, val_loss, str(time_elapsed),
-                                         str(time_to_completion))
+        summary_str = "Epoch: {}, Train Loss: {}, Val Loss: {}, Mean IoU: {}, Took {}, ETA: {}\n"
+        summary_str = summary_str.format(self.__current_epoch + 1, train_loss, val_loss, \
+            self.__mean_iou_score, str(time_elapsed), str(time_to_completion))
         self.__log(summary_str, 'epoch.log')
 
 

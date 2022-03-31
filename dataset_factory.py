@@ -15,9 +15,9 @@ class Voxels(Dataset):
         with open(file, 'rb') as pickle_file:
             self.data = pickle.load(pickle_file)
 
-        self.coords = self.data[0:3]
-        self.pixel_vals = self.data[3:-1]
-        self.labels = self.data[-1]
+        self.coords = self.data[[0, 1, 2]].to_numpy()
+        self.pixel_vals = self.data[[3, 4, 5]].to_numpy()
+        self.labels = self.data[6].to_numpy()
 
     def __len__(self):
         return len(self.data)

@@ -1,5 +1,6 @@
 import os
 import json
+import numpy as np
 
 def read_file(path):
     if os.path.isfile(path):
@@ -41,5 +42,19 @@ def log_to_file_in_dir(root_dir, file_name, log_str):
 
 
 
-def iou():
-    pass
+def iou(pred, labels, n_classes):
+    ious = []
+    pred = pred.view(-1)
+    target = labels.view(-1)
+
+    # Ignore IoU for background class ("0")
+    for cls in range(n_classes):  # last class is ignored
+        pred_inds = pred == cls
+        target_inds = target == cls
+        intersection = (pred_inds[target_inds]).long().sum().item()#.data.cpu()[0]  # Cast to long to prevent overflows
+        union = pred_inds.long().sum().item()+ target_inds.long().sum().item() - intersection
+        if union == 0:
+            ious.append(float('nan'))  # If there is no ground truth, do not include in evaluation
+        else:
+            ious.append(float(intersection) / float(max(union, 1)))
+    return np.array(ious)
