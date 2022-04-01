@@ -1,0 +1,25 @@
+{
+    "experiment_name": "baseline",
+    "dataset": {
+      "training_file_path": "data/data.pkl",
+      "validation_file_path": "data/data.pkl",
+      "batch_size": 32,
+      "num_workers": 4
+    },
+    "experiment": {
+      "num_epochs": 2,
+      "learning_rate": 5e-4
+    },
+    "model": {
+      "hidden_size": 512,
+      "num_layers": 2,
+      "embedding_size": 300,
+      "n_classes": 13,
+      "model_type": "baseline"
+    },
+    "generation": {
+      "max_length": 20,
+      "deterministic": false,
+      "temperature": 0.1
+    }
+  }
