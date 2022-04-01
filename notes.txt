@@ -1,5 +1,44 @@
+PointCloud Tutorial: http://www.open3d.org/docs/release/tutorial/geometry/pointcloud.html
 Building the model in PyTorch, version information to be added later
 Using cuda and automatic mixed precision
 Open3D pytorch doesn't work with Windows, hence using wsl (Ubuntu)
 Installed pytorch using the cuda requirements in the git repo
 The sparseconv layer is present in open3d.ml.torch.layers and not in open3d.ml.torch.nn as is given in the documentation link provided in the mail
+For visualization: --> http://www.open3d.org/docs/latest/tutorial/visualization/headless_rendering.html
+    EGL not found --> sudo apt-install python3-pip mesa-utils libegl1-mesa xvfb
+    eglInitialize failed --> ?
+
+    git clone https://github.com/isl-org/Open3D
+    cd Open3D
+    util/install_deps_ubuntu.sh
+    mkdir build && cd build
+    cmake -DENABLE_HEADLESS_RENDERING=ON \
+                 -DBUILD_GUI=OFF \
+                 -DBUILD_WEBRTC=OFF \
+                 -DUSE_SYSTEM_GLEW=OFF \
+                 -DUSE_SYSTEM_GLFW=OFF \
+                 ..
+        Error: CMake 3.19.2 or higher is required
+
+        sudo apt install build-essential libtool autoconf unzip wget
+        sudo apt purge --auto-remove cmake
+        version=3.22
+        build=2
+        wget https://cmake.org/files/v$version/cmake-$version.$build.tar.gz
+        tar -xzvf cmake-$version.$build.tar.gz
+        cd cmake-$version.$build/
+        ./bootstrap --> cmake c++ compiler doesn't support c++11 --> seems to be some issue due to building on a mounted drive
+            -- commented this check in CMakeLists.txt
+            -- in case there's an issue finding openssl --> sudo apt-get install libssl-dev
+        make -j$(nproc)
+
+
+    Now rerun in the open3d buid folder: cmake -DENABLE_HEADLESS_RENDERING=ON \
+                 -DBUILD_GUI=OFF \
+                 -DBUILD_WEBRTC=OFF \
+                 -DUSE_SYSTEM_GLEW=OFF \
+                 -DUSE_SYSTEM_GLFW=OFF \
+                 ..
+    make -j$(nproc)
+    make install-pip-package
+    

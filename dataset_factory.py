@@ -1,6 +1,7 @@
 import csv, os, sys, pickle
 from torch.utils.data import DataLoader
 from torch.utils.data import Dataset
+import open3d
 import torch
 import pandas as pd
 import constants
@@ -18,6 +19,9 @@ class Voxels(Dataset):
         self.coords = self.data[[0, 1, 2]].to_numpy()
         self.pixel_vals = self.data[[3, 4, 5]].to_numpy()
         self.labels = self.data[6].to_numpy()
+
+        # point_cloud = open3d.geometry.PointCloud(self.data[range(6)])
+        # print (point_cloud)
 
     def __len__(self):
         return len(self.data)
